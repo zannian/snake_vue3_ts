@@ -1,140 +1,105 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router"
-          target="_blank"
-          rel="noopener"
-          >router</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex"
-          target="_blank"
-          rel="noopener"
-          >vuex</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-typescript"
-          target="_blank"
-          rel="noopener"
-          >typescript</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+  <div class="stage">
+    <div
+      class="snake"
+      v-for="(item, index) in body"
+      :style="{ left: item[0] * 50 + 'px', top: item[1] * 50 + 'px' }"
+      :key="index"
+    ></div>
+    <div class="food" :style="{ left: fp[0] * 50 + 'px', top: fp[1] * 50 + 'px' }"></div>
+    <div class="gg" v-if="gg == true">菜</div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue'
+import Snake from '@/game/snake'
+import Food from '@/game/food'
+enum Direction {
+  Up = 1,
+  Down,
+  Left,
+  Right,
+}
 
 export default defineComponent({
-  name: "HelloWorld",
+  name: 'HelloWorld',
   props: {
     msg: String,
   },
-});
+  data() {
+    return {
+      body: [] as Array<Array<number>>,
+      fp: [] as Array<number>,
+      gg: false
+    }
+  },
+  methods: {
+  },
+  created() {
+    const snake = new Snake(5, 5)
+    const food = new Food()
+    this.fp = food.pst
+    document.body.addEventListener('keydown', (e) => {
+      if (e.code == 'ArrowUp' && snake.preDir != Direction.Down) {
+        snake.dir = Direction.Up
+      } else if (e.code == 'ArrowDown' && snake.preDir != Direction.Up) {
+        snake.dir = Direction.Down
+      } else if (e.code == 'ArrowRight' && snake.preDir != Direction.Left) {
+        snake.dir = Direction.Right
+      } else if (e.code == 'ArrowLeft' && snake.preDir != Direction.Right) {
+        snake.dir = Direction.Left
+      }
+    })
+    // this.body = snake.body
+    setInterval(() => {
+
+      snake.move()
+      if (snake.body[0][0] === this.fp[0] && snake.body[0][1] === this.fp[1]) {
+        snake.eat()
+        food.refresh(snake.body)
+        this.fp = food.pst
+      }
+      if (!snake.alive) return this.gg = true
+      this.body = snake.body
+
+    }, 300)
+
+  }
+})
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.stage {
+  width: 1200px;
+  height: 800px;
+  margin: 0 auto;
+  border: 2px solid slategrey;
+  box-shadow: 0px 2px 3px gray;
+  background-color: steelblue;
+  position: relative;
+  .snake {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    background-color: green;
+  }
+  .food {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    background-color: #912266;
+  }
+  .gg {
+    position: relative;
+    z-index: 999;
+    text-align: center;
+    line-height: 800px;
+    font-size: 200px;
+    font-family: "楷体", "楷体_GB2312";
+    color: #7c3131;
+    background: #ffffff57;
+  }
 }
 </style>
