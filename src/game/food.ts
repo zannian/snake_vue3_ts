@@ -1,6 +1,7 @@
 export default class Food {
   pst: Array<number>
   constructor() {
+    // init position
     this.pst = [5, 8]
   }
   refresh(body: Array<Array<number>>): void {
